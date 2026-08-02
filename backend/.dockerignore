@@ -1,0 +1,10 @@
+# Purpose: Keep backend Docker build context small.
+# Callers: docker build and docker compose.
+# Deps: Docker ignore syntax.
+# API: ignore patterns for backend image.
+# Side effects: excludes local runtime and cache files.
+.venv
+data
+__pycache__
+.pytest_cache
+.ruff_cache

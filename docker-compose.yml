@@ -1,0 +1,51 @@
+# Purpose: Run ScreenSort locally with Docker.
+# Callers: docker compose CLI.
+# Deps: backend and frontend Dockerfiles, local data volumes.
+# API: frontend at localhost:5173, backend at localhost:8000.
+# Side effects: creates persistent local data directories under ./data.
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      SCREENSORT_SCREENSHOTS_DIR: /app/data/inbox
+      SCREENSORT_ORGANIZED_DIR: /app/data/organized
+      SCREENSORT_ORGANIZE_MODE: copy
+      SCREENSORT_OCR_ENABLED: "true"
+      SCREENSORT_OCR_LANGUAGE: eng
+      SCREENSORT_OCR_TIMEOUT_SECONDS: "10"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/screenshots"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  watcher:
+    build:
+      context: ./backend
+    command: ["uv", "run", "python", "-m", "app.watcher_daemon"]
+    profiles: ["watcher"]
+    environment:
+      SCREENSORT_SCREENSHOTS_DIR: /app/data/inbox
+      SCREENSORT_ORGANIZED_DIR: /app/data/organized
+      SCREENSORT_ORGANIZE_MODE: copy
+      SCREENSORT_OCR_ENABLED: "true"
+      SCREENSORT_OCR_LANGUAGE: eng
+      SCREENSORT_OCR_TIMEOUT_SECONDS: "10"
+      SCREENSORT_WATCHER_INTERVAL_SECONDS: "5"
+    volumes:
+      - ./data:/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:80"

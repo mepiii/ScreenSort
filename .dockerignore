@@ -1,0 +1,18 @@
+# Purpose: Keep Docker build contexts small.
+# Callers: docker build and docker compose.
+# Deps: Docker ignore syntax.
+# API: ignore patterns for root build context.
+# Side effects: excludes generated/local files from image contexts.
+.git
+.claude
+.tldr
+thoughts
+frontend/node_modules
+frontend/dist
+frontend/.claude
+frontend/data
+backend/.venv
+backend/data
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
